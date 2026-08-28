@@ -2,6 +2,8 @@ package com.pavansingerreddy.note.events.event_listener;
 
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.scheduling.annotation.Async;
@@ -22,6 +24,8 @@ import com.pavansingerreddy.note.services.UserService;
 // with the verification token so that the user can verify by using his email
 // address
 public class RegistrationCompleteEventListener implements ApplicationListener<RegistrationCompleteEvent> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RegistrationCompleteEventListener.class);
 
     @Autowired
     private UserService userService;
@@ -75,6 +79,8 @@ public class RegistrationCompleteEventListener implements ApplicationListener<Re
             // root path or url of the frontend application and we are also attaching our
             // verification token to that url and storing a string named url
             String url = event.getApplicationUrl() + "/verifyRegistration?token=" + token;
+
+            LOGGER.warn("Registration verification url is {}", url);
 
             // send mail to the users
 

@@ -12,6 +12,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import jakarta.persistence.CascadeType;
@@ -107,17 +108,11 @@ public class Users implements UserDetails {
     // orphanRemoval = true means that when a User entity is removed, its associated
     // VerificationToken entity will also be removed.
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    // verificationToken field holds the verification token associated with the
-    // user.
+    @JsonIgnore
     private VerificationToken verificationToken;
-    // OneToMany annotation defines a one-to-many relationship between the User and
-    // Note entities. The mappedBy attribute indicates that the Note entity owns the
-    // relationship. CascadeType.ALL means that all operations (persist, remove,
-    // refresh, merge, detach) that are applied to the User entity will also be
-    // applied to the Note entity. FetchType.LAZY means that the related entities
-    // will be fetched on demand.
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    // notes field holds the notes associated with the user
+    @JsonIgnore
     private List<Note> notes;
 
     @Override

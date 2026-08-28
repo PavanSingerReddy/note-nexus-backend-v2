@@ -17,6 +17,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.pavansingerreddy.note.dto.UserDto;
@@ -164,6 +166,7 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
+    @Cacheable(value = "users", key = "#userEmail")
     // This method is used to get the user details by his/her email address
     public Users getUserDetailsByEmail(String userEmail) throws UserNotFoundException {
         // it get's the optional user from the userRepository we want Optional user
@@ -182,6 +185,7 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
+    @CacheEvict(value = "users", key = "#userEmail")
     // This method updates the information of a user identified by their email. It
     // takes the user's email and a NormalUserModel object containing the new user
     // information as parameters. It returns a UserDto object representing the
@@ -223,6 +227,7 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
+    @CacheEvict(value = "users", key = "#userEmail")
     // This method deletes a user identified by their email. It takes the user's
     // email as a parameter. It returns a UserDto object representing the deleted
     // user. If the user is not found, it throws a UserNotFoundException.
@@ -438,6 +443,7 @@ public class UserServiceImplementation implements UserService {
     // then checking if the newpassword and retypednewpassword matches and if they
     // both matches then we are setting the new password of the user
     @Override
+    @CacheEvict(value = "users", key = "#user.email")
     public String resetPassword(Users user, ResetPasswordModel resetPasswordModel) throws InvalidUserDetailsException {
         // checking if the newpassword and retypednewpassword matches if they match then
         // we save the newpassword to the database else we throw an exception
@@ -459,6 +465,7 @@ public class UserServiceImplementation implements UserService {
     // user object and the change password model which is given to us by the user
     // and it contains old password , new password and retyped new password
     @Override
+    @CacheEvict(value = "users", key = "#user.email")
     public String changePassword(Users user, @Valid ChangePasswordModel changePasswordModel)
             throws InvalidUserDetailsException {
 

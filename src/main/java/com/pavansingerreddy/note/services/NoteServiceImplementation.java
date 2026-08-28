@@ -12,6 +12,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +43,11 @@ public class NoteServiceImplementation implements NoteService {
     UserRepository userRepository;
 
     @Override
+    @Caching(evict = {
+        @CacheEvict(value = "notesList", key = "#userEmail"),
+        @CacheEvict(value = "pagedNotes", allEntries = true),
+        @CacheEvict(value = "searchNotes", allEntries = true)
+    })
     // This method creates a new note by taking the note model which contains note
     // details and the user email as it's parameters
     public NoteDto createNewNote(NoteModel noteModel, String userEmail) throws UserNotFoundException {
@@ -75,6 +83,7 @@ public class NoteServiceImplementation implements NoteService {
     }
 
     @Override
+    @Cacheable(value = "singleNote", key = "#userEmail + ':' + #noteId")
     // This method is used to get a specific note using the user's email and the
     // associated note Id of the user
     public NoteDto getASpecificNote(String userEmail, Long noteId) throws NoteDoesNotExistsException {
@@ -111,6 +120,7 @@ public class NoteServiceImplementation implements NoteService {
     }
 
     @Override
+    @Cacheable(value = "notesList", key = "#userEmail")
     // This method retrieves all notes associated with a user identified by their
     // email. It takes the user's email as a parameter. It returns a list of NoteDto
     // objects representing the notes. If no notes are found, it throws a
@@ -146,6 +156,12 @@ public class NoteServiceImplementation implements NoteService {
     }
 
     @Override
+    @Caching(evict = {
+        @CacheEvict(value = "notesList", key = "#userEmail"),
+        @CacheEvict(value = "singleNote", key = "#userEmail + ':' + #noteId"),
+        @CacheEvict(value = "pagedNotes", allEntries = true),
+        @CacheEvict(value = "searchNotes", allEntries = true)
+    })
     // This method checks if the user corresponding to the email and the note
     // corresponding to the noteId is present or not if they are present then it
     // checks if the given note's user id is the same as the given user's user id if
@@ -186,6 +202,12 @@ public class NoteServiceImplementation implements NoteService {
     }
 
     @Override
+    @Caching(evict = {
+        @CacheEvict(value = "notesList", key = "#userEmail"),
+        @CacheEvict(value = "singleNote", key = "#userEmail + ':' + #noteId"),
+        @CacheEvict(value = "pagedNotes", allEntries = true),
+        @CacheEvict(value = "searchNotes", allEntries = true)
+    })
     // This method checks if the user corresponding to the email and the note
     // corresponding to the noteId is present or not if they are present then it
     // checks if the given note's user id is the same as the given user's user id if
@@ -222,6 +244,7 @@ public class NoteServiceImplementation implements NoteService {
     }
 
     @Override
+    @Cacheable(value = "searchNotes", key = "#userEmail + ':' + #searchTerm")
     // This method searches for the given search term in the user's object which is
     // corresponding to the given userEmail.It searches for the search term in the
     // user's note's title and also it's content and returns the corresponding notes
@@ -267,6 +290,7 @@ public class NoteServiceImplementation implements NoteService {
     }
 
     @Override
+    @Cacheable(value = "pagedNotes", key = "#userEmail + ':' + #page + ':' + #size")
     // This method retrieves a page of notes associated with a user identified by
     // their email. It takes the user's email, the page number, and the page size as
     // parameters. It returns a list of PagableNoteDto objects representing the

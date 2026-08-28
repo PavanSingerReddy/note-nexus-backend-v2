@@ -1,6 +1,15 @@
 spring:
   profiles:
     active: mysql
+  cache:
+    type: redis
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+      username: ${REDIS_USERNAME:spring_app_user}
+      password: ${REDIS_PASSWORD:MySecretPassword123}
 
 # uncomment below logging details so that you can see each step of the debug process while the application is getting executed
 
@@ -37,10 +46,10 @@ jwt:
 #our custom mail configuration
 mail:
   config1:
-    host: #enter your smtp server like smtp-mail.outlook.com for outlook etc...
+    host: smtp-mail.outlook.com
     port: 587
-    username:  #enter your email id of the email account which is assosiated with the above smtp
-    password: #enter the app password of your email account
+    username: irisnote1@outlook.com
+    password: gwfewxteraivvfrq
     properties: 
       mail: 
         smtp: 
@@ -48,10 +57,10 @@ mail:
           starttls: 
             enable: true
   config2:
-    host: #enter your smtp server like smtp-mail.outlook.com for outlook etc...
+    host: smtp-mail.outlook.com
     port: 587
-    username: #enter your email id of the email account which is assosiated with the above smtp
-    password: #enter the app password of your email account
+    username: not-app1@hotmail.com
+    password: zkxoydihrptbnmwt
     properties: 
       mail: 
         smtp: 

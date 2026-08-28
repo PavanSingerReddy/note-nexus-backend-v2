@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:latest
+    container_name: my-secure-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis-data:/data
+    command: >
+      /bin/sh -c "
+      echo 'user default off' > /data/users.acl &&
+      echo 'user spring_app_user on >MySecretPassword123 ~* +@all' >> /data/users.acl &&
+      redis-server --aclfile /data/users.acl --appendonly yes
+      "
+    restart: unless-stopped

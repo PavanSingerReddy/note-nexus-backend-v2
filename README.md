@@ -27,6 +27,8 @@ This Spring Boot application provides the API backbone for the Notes App, enabli
 
 - Maven
 
+- Docker & Docker Compose
+
 - IDE (e.g., IntelliJ IDEA, VSCode)
 
 ### Instructions : 
@@ -57,7 +59,18 @@ mvn install
 
 - edit the host, username, password properties of the mail config properties in the application.yml file with the host property configured to the smtp server address of the mail provider like `smtp-mail.outlook.com` for outlook and `smtp.gmail.com` for gmail and username property with the username and password property with the app password of the email.This email will be used to send the confirmation email for verifying the user account
 
-5. **Start the server :**
+5. **Start Infrastructure Services (Redis) :**
+
+    **Start Redis (with secure ACL configured) :**
+    ```bash
+    docker-compose -f docker-compose-redis.yml up -d
+    ```
+    To stop Redis:
+    ```bash
+    docker-compose -f docker-compose-redis.yml down
+    ```
+
+6. **Start the server :**
 
     **IntelliJ IDEA :**
     - Open the project in IntelliJ IDEA.
@@ -68,7 +81,7 @@ mvn install
     - Run `mvn spring-boot:run`.
 
 
-6. **Start the frontend of the application :**
+7. **Start the frontend of the application :**
 
     After starting the backend server, you can start the frontend React application. The frontend application repository is : https://github.com/PavanSingerReddy/note-nexus-frontend
 
