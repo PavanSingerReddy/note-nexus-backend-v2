@@ -10,7 +10,7 @@ import com.pavansingerreddy.note.model.NoteModel;
 
 public interface NoteService {
 
-    NoteDto createNewNote(NoteModel noteModel,String userEmail) throws UserNotFoundException;
+    NoteDto createNewNote(NoteModel noteModel, String userEmail) throws UserNotFoundException;
 
     NoteDto getASpecificNote(String userEmail, Long noteId) throws NoteDoesNotExistsException;
 
@@ -22,7 +22,11 @@ public interface NoteService {
 
     List<NoteDto> searchNotes(String userEmail, String searchTerm) throws NoteDoesNotExistsException;
 
-    List<PagableNoteDto> getPagedNotes(String userEmail, int page, int size) throws NoteDoesNotExistsException;
+    List<NoteDto> searchNotes(String userEmail, String searchTerm, int page, int size)
+            throws NoteDoesNotExistsException;
 
-    
+    List<PagableNoteDto> getPagedNotes(String userEmail, int page, int size) throws NoteDoesNotExistsException;
+ 
+    int syncAllNotesToOpenSearch();
+
 }

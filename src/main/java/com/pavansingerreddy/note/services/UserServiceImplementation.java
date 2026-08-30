@@ -211,9 +211,9 @@ public class UserServiceImplementation implements UserService {
                 user.setUsername(normalUserModel.getUsername());
             }
             // If the NormalUserModel object contains a non-empty password, update the
-            // user's password.
+            // user's password by encoding it so that plaintext is never stored.
             if (normalUserModel.getPassword() != null && !normalUserModel.getPassword().isEmpty()) {
-                user.setPassword(normalUserModel.getPassword());
+                user.setPassword(passwordEncoder.encode(normalUserModel.getPassword()));
             }
             // Save the updated User object to the database.
             userRepository.save(user);

@@ -59,7 +59,7 @@ mvn install
 
 - edit the host, username, password properties of the mail config properties in the application.yml file with the host property configured to the smtp server address of the mail provider like `smtp-mail.outlook.com` for outlook and `smtp.gmail.com` for gmail and username property with the username and password property with the app password of the email.This email will be used to send the confirmation email for verifying the user account
 
-5. **Start Infrastructure Services (Redis) :**
+5. **Start Infrastructure Services (Redis & OpenSearch) :**
 
     **Start Redis (with secure ACL configured) :**
     ```bash
@@ -68,6 +68,15 @@ mvn install
     To stop Redis:
     ```bash
     docker-compose -f docker-compose-redis.yml down
+    ```
+
+    **Start OpenSearch :**
+    ```bash
+    docker-compose up -d
+    ```
+    To stop OpenSearch:
+    ```bash
+    docker-compose down
     ```
 
 6. **Start the server :**

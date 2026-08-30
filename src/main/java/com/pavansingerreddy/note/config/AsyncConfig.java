@@ -1,16 +1,33 @@
 package com.pavansingerreddy.note.config;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-// we are defining a configuration annotation which indicates that we are configuring something and This annotation indicates that the class can be used by the Spring IoC container as a source of bean definitions.
+import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
+
 @Configuration
-// This annotation is used to enable Spring’s asynchronous method execution
-// capability.We are enabling asynchronous execution of spring because it can be
-// used in event listeners
 @EnableAsync
-// This is the declaration of the configuration class. You can add more
-// configuration details inside this class if needed.
 public class AsyncConfig {
 
+    /**
+     * Dedicated ThreadPoolTaskExecutor for OpenSearch ingestion operations.
+     * Prevents unbounded thread creation and provides backpressure via CallerRunsPolicy.
+     */
+    @Bean(name = "searchSyncExecutor")
+    public Executor searchSyncExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5);
+        executor.setMaxPoolSize(20);
+        executor.setQueueCapacity(500);
+        executor.setThreadNamePrefix("opensearch-sync-");
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(30);
+        executor.initialize();
+        return executor;
+    }
 }
+

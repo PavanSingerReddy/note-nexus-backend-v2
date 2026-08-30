@@ -67,3 +67,17 @@ mail:
           auth: true
           starttls: 
             enable: true
+
+# OpenSearch Configuration (Matches docker-compose / production environment)
+opensearch:
+  host: ${OPENSEARCH_HOST:localhost}
+  port: ${OPENSEARCH_PORT:9200}
+  scheme: ${OPENSEARCH_SCHEME:http}
+  security-enabled: ${OPENSEARCH_SECURITY_ENABLED:false}
+  username: ${OPENSEARCH_USERNAME:admin}
+  password: ${OPENSEARCH_PASSWORD:admin}
+  trust-self-signed: ${OPENSEARCH_TRUST_SELF_SIGNED:true}
+  index-name: ${OPENSEARCH_INDEX_NAME:notes_v1}
+  write-alias: ${OPENSEARCH_WRITE_ALIAS:notes_write}
+  search-alias: ${OPENSEARCH_SEARCH_ALIAS:notes_search}
+

@@ -2,6 +2,7 @@ package com.pavansingerreddy.note.controller;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -177,26 +178,15 @@ public class NotesController {
     // method. "/api/notes/search" is the path at which this method will be
     // available.
     @GetMapping("/search")
-    // @RolesAllowed is a Java annotation used to specify the security roles
-    // permitted to access method(s) in an application.
-    // The "USER" role is allowed to access this method.
     @RolesAllowed("USER")
-    // This method returns a ResponseEntity containing a list of NoteDto objects.
-    // It throws a NoteDoesNotExistsException if no notes are found.
-    // The Principal object represents the currently authenticated user.
-    // @RequestParam is a Spring annotation which can be used to get the query
-    // parameter of the request. Here it's binding the request query parameter
-    // "term" to the method parameter searchTerm.
-
-    public ResponseEntity<List<NoteDto>> getNotes(Principal principal, @RequestParam(name = "term") String searchTerm)
+    public ResponseEntity<List<NoteDto>> getNotes(
+            Principal principal,
+            @RequestParam(name = "term") String searchTerm,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size)
             throws NoteDoesNotExistsException {
-        // Get the name (email) of the authenticated user.
         String userEmail = principal.getName();
-        // Call a method in noteService to search for notes associated with the user's
-        // email and the search term. Return the list of NoteDto objects in the response
-        // with a status of 200 OK.
-                return ResponseEntity.ok(noteService.searchNotes(userEmail, searchTerm));
-
+        return ResponseEntity.ok(noteService.searchNotes(userEmail, searchTerm, page, size));
     }
 
     // @GetMapping is a Spring annotation that maps HTTP GET requests onto this
@@ -225,5 +215,18 @@ public class NotesController {
 
         return ResponseEntity.ok(noteService.getPagedNotes(userEmail, page, size));
 
+    }
+
+    // @PostMapping is a Spring annotation that maps HTTP POST requests onto this
+    // method. "/api/notes/sync-all" is the path to bulk update/index all notes
+    // from the database into the OpenSearch index.
+    @PostMapping("/sync-all")
+    @RolesAllowed("USER")
+    public ResponseEntity<Map<String, Object>> syncAllNotesToOpenSearch() {
+        int totalSynced = noteService.syncAllNotesToOpenSearch();
+        return ResponseEntity.ok(Map.of(
+                "message", "Successfully bulk-synced all notes to OpenSearch",
+                "totalSynced", totalSynced
+        ));
     }
 }
