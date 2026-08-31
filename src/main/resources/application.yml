@@ -70,12 +70,14 @@ mail:
 
 # OpenSearch Configuration (Matches docker-compose / production environment)
 opensearch:
+  # Comma-separated list of host:port for multi-node clusters (or fallback to host + port)
+  hosts: ${OPENSEARCH_HOSTS:localhost:9200,localhost:9201}
   host: ${OPENSEARCH_HOST:localhost}
   port: ${OPENSEARCH_PORT:9200}
-  scheme: ${OPENSEARCH_SCHEME:http}
-  security-enabled: ${OPENSEARCH_SECURITY_ENABLED:false}
+  scheme: ${OPENSEARCH_SCHEME:https}
+  security-enabled: ${OPENSEARCH_SECURITY_ENABLED:true}
   username: ${OPENSEARCH_USERNAME:admin}
-  password: ${OPENSEARCH_PASSWORD:admin}
+  password: ${OPENSEARCH_PASSWORD:MySecret_OpenSearch_Pass123!}
   trust-self-signed: ${OPENSEARCH_TRUST_SELF_SIGNED:true}
   index-name: ${OPENSEARCH_INDEX_NAME:notes_v1}
   write-alias: ${OPENSEARCH_WRITE_ALIAS:notes_write}

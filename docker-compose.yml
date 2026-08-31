@@ -1,14 +1,17 @@
 version: '3'
 
 services:
-  opensearch:
+  opensearch-node1:
     image: opensearchproject/opensearch:2.19.0
-    container_name: opensearch-node
+    container_name: opensearch-node1
     environment:
-      - discovery.type=single-node
-      - DISABLE_SECURITY_PLUGIN=true
+      - cluster.name=opensearch-cluster
+      - node.name=opensearch-node1
+      - discovery.seed_hosts=opensearch-node1,opensearch-node2
+      - cluster.initial_cluster_manager_nodes=opensearch-node1,opensearch-node2
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=MySecret_OpenSearch_Pass123!
       - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
-      - bootstrap.memory_lock=true # Optional: Disable JVM heap memory swapping
+      - bootstrap.memory_lock=true
     ulimits:
       memlock:
         soft: -1
@@ -17,15 +20,41 @@ services:
         soft: 65536
         hard: 65536
     ports:
-      - "9200:9200"
-      - "9600:9600"
+      - "9200:9200" # REST API port for node 1
+      - "9600:9600" # Performance Analyzer
     volumes:
-      - opensearch-data:/usr/share/opensearch/data
+      - opensearch-data1:/usr/share/opensearch/data
+    networks:
+      - opensearch-net
+
+  opensearch-node2:
+    image: opensearchproject/opensearch:2.19.0
+    container_name: opensearch-node2
+    environment:
+      - cluster.name=opensearch-cluster
+      - node.name=opensearch-node2
+      - discovery.seed_hosts=opensearch-node1,opensearch-node2
+      - cluster.initial_cluster_manager_nodes=opensearch-node1,opensearch-node2
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=MySecret_OpenSearch_Pass123!
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+      - bootstrap.memory_lock=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "9201:9200" # REST API port for node 2
+    volumes:
+      - opensearch-data2:/usr/share/opensearch/data
     networks:
       - opensearch-net
 
 volumes:
-  opensearch-data:
+  opensearch-data1:
+  opensearch-data2:
 
 networks:
   opensearch-net:

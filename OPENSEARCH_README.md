@@ -123,9 +123,12 @@ In our application, we follow an **Event-Driven, Transaction-Safe E-Commerce Pip
 **File:** [OpenSearchConfig.java](file:///c:/Users/91967/Downloads/note-taking-app-spring/notes-taking-backend/src/main/java/com/pavansingerreddy/note/config/OpenSearchConfig.java)
 
 This class initializes the official Java OpenSearch Client using **Apache HttpClient 5**:
-1. **Connection Pooling**: Reuses up to 100 HTTP connections (`setMaxConnTotal(100)`) so our app doesn't reopen sockets for every search.
-2. **Timeouts**: Sets a 3-second connect timeout and 5-second response timeout to prevent thread hanging.
-3. **Environment Agnostic**: Reads host, port, scheme (HTTP vs HTTPS), and basic credentials from `application.yml` or Docker environment variables.
+1. **Production-Grade HTTPS & TLS**: Enforces TLS/HTTPS encryption in-transit even behind closed private networks (VPCs).
+2. **Self-Signed Certificate & Hostname Verification**: Automatically trusts internal/self-signed cluster certificates and utilizes `NoopHostnameVerifier` when `trust-self-signed: true`.
+3. **Authentication (RBAC)**: Integrates `BasicCredentialsProvider` for authenticated REST requests against OpenSearch's internal security database.
+4. **Connection Pooling**: Reuses up to 100 HTTP connections (`setMaxConnTotal(100)`) so our app doesn't reopen sockets for every search.
+5. **Timeouts**: Sets a 3-second connect timeout and 5-second response timeout to prevent thread hanging.
+6. **Environment Agnostic**: Reads host, port, scheme (HTTPS vs HTTP), credentials, and certificate trust flags from `application.yml` or environment variables.
 
 ---
 
@@ -231,16 +234,20 @@ A user has a note:
 
 ## 6. How to Run & Test Locally
 
-### 1. Start OpenSearch with Docker Compose
+### 1. Start Multi-Node OpenSearch with Docker Compose
 From the backend directory:
 ```bash
 docker-compose up -d
 ```
-Verify OpenSearch is healthy:
+Verify the multi-node cluster status and health:
 ```bash
-curl http://localhost:9200
+# Check cluster health (Status should be "green" with 2 nodes)
+curl -k -u admin:MySecret_OpenSearch_Pass123! https://localhost:9200/_cluster/health?pretty
+
+# Check all active cluster nodes
+curl -k -u admin:MySecret_OpenSearch_Pass123! https://localhost:9200/_cat/nodes?v
 ```
-*(You will see the OpenSearch cluster name and version info JSON response)*
+*(You will see both `opensearch-node1` and `opensearch-node2` connected in the same cluster)*
 
 ### 2. Start the Spring Boot Backend
 ```bash
@@ -248,15 +255,20 @@ mvn spring-boot:run
 ```
 Upon startup, check your console logs:
 ```text
-INFO: Initializing OpenSearch Client pointing to: http://localhost:9200
+INFO: Initializing OpenSearch Client pointing to 2 node(s): [https://localhost:9200, https://localhost:9201]
+INFO: Configured OpenSearch TLS with self-signed certificate trust and NoopHostnameVerifier
 INFO: Creating OpenSearch index 'notes_v1' with custom analyzers and aliases...
 INFO: OpenSearch index 'notes_v1' initialized successfully.
 ```
 
-### 3. Verify the Index & Aliases
-You can inspect the aliases directly in your browser or terminal:
+### 3. Verify the Index, Shards, & Aliases
+You can inspect the shards and aliases directly via cURL:
 ```bash
-curl http://localhost:9200/_cat/aliases?v
+# Verify shards are balanced across both nodes
+curl -k -u admin:MySecret_OpenSearch_Pass123! https://localhost:9200/_cat/shards?v
+
+# Verify aliases
+curl -k -u admin:MySecret_OpenSearch_Pass123! https://localhost:9200/_cat/aliases?v
 ```
 You will see:
 ```text
