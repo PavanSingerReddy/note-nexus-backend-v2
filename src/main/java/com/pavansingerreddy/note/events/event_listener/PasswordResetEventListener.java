@@ -1,15 +1,19 @@
 package com.pavansingerreddy.note.events.event_listener;
 
+import java.util.Date;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.pavansingerreddy.note.entity.Users;
 import com.pavansingerreddy.note.events.event_publisher.PasswordResetEvent;
-import com.pavansingerreddy.note.services.EmailService;
+import com.pavansingerreddy.note.kafka.dto.EmailNotificationEvent;
+import com.pavansingerreddy.note.kafka.dto.UserAuditEvent;
+import com.pavansingerreddy.note.kafka.producer.EmailNotificationProducer;
+import com.pavansingerreddy.note.kafka.producer.UserAuditProducer;
 import com.pavansingerreddy.note.services.UserService;
 
 // making it as component so that spring can recognize it as the component and create a bean for it
@@ -23,50 +27,41 @@ public class PasswordResetEventListener implements ApplicationListener<PasswordR
     @Autowired
     private UserService userService;
 
-    // getting the email service object so that we can send email to the user for
-    // resetting the password
     @Autowired
-    private EmailService emailService;
+    private EmailNotificationProducer emailNotificationProducer;
 
-    // making the onApplicationEvent function Async so that it doesn't interfere
-    // with the main thread and it operates on the different thread from the main
-    // api thread on which the request and response is happening so that application
-    // feels snappy
-    @Async
-    // overriding the onApplicationEvent which get's executed when an event get's
-    // triggered or published
+    @Autowired
+    private UserAuditProducer userAuditProducer;
+
+    @Transactional
     @Override
     public void onApplicationEvent(PasswordResetEvent event) {
-        // creating the password reset token for the user
-
-        // getting the user object of the user who triggered this event
         Users user = event.getUser();
-        // generating a random uuid which is stored in my database and also sent to the
-        // user's email in a query parameter url so that user can verify and reset the
-        // password
         String token = UUID.randomUUID().toString();
-        // saves the random UUID token in the database with the user details like user
-        // id attached to that token
         userService.savePasswordResetToken(token, user);
 
-        // url to which the user have to call to reset the password.this url contains
-        // the application url(url on which user endpoints exists) with the
-        // /verifyResetPassword endpoint for verifying our token and the token itself as
-        // a query parameter
         String url = event.getApplicationUrl() + "/verifyResetPassword?token=" + token;
-
-        // sending the url to the email to reset the password
-
-        // Message body which is the body of the email which we send to the user
         String messageBody = "click The link to reset your account password : " + url;
-        // Message subject is the title of the email which we send
         String messageSubject = "Password Reset Email";
-        // using the emailService.sendEmail() custom method to send the email to the
-        // user by using the user's email with the message subject and message body and
-        // getMailNoToUseForSendingEmail() contains the mail number from our mail
-        // providers to use for sending the email for resetting the password
-        emailService.sendEmail(user.getEmail(), messageSubject, messageBody, event.getMailNoToUseForSendingEmail());
 
+        // Dispatch via Kafka
+        EmailNotificationEvent emailEvent = EmailNotificationEvent.builder()
+                        .type(EmailNotificationEvent.NotificationType.PASSWORD_RESET)
+                        .toEmail(user.getEmail())
+                        .subject(messageSubject)
+                        .body(messageBody)
+                        .mailNoToUse(event.getMailNoToUseForSendingEmail())
+                        .build();
+        emailNotificationProducer.publishEmailNotification(emailEvent);
+
+        // Audit log via Kafka
+        UserAuditEvent auditEvent = UserAuditEvent.builder()
+                        .userId(user.getUserId())
+                        .email(user.getEmail())
+                        .action(UserAuditEvent.AuditAction.PASSWORD_RESET_REQUESTED)
+                        .timestamp(new Date())
+                        .details("Password reset token generated and email queued via Kafka")
+                        .build();
+        userAuditProducer.publishAuditEvent(auditEvent);
     }
-
 }

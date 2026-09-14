@@ -10,6 +10,23 @@ spring:
       timeout: 2000ms
       username: ${REDIS_USERNAME:spring_app_user}
       password: ${REDIS_PASSWORD:MySecretPassword123}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
+    consumer:
+      group-id: note-nexus-backend
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.trusted.packages: "com.pavansingerreddy.note.*"
 
 # uncomment below logging details so that you can see each step of the debug process while the application is getting executed
 
@@ -82,4 +99,12 @@ opensearch:
   index-name: ${OPENSEARCH_INDEX_NAME:notes_v1}
   write-alias: ${OPENSEARCH_WRITE_ALIAS:notes_write}
   search-alias: ${OPENSEARCH_SEARCH_ALIAS:notes_search}
+
+# Application Kafka Topic Names
+app:
+  kafka:
+    topics:
+      note-events: ${KAFKA_TOPIC_NOTE_EVENTS:notes.events.v1}
+      email-notifications: ${KAFKA_TOPIC_EMAIL_NOTIFICATIONS:notifications.email.v1}
+      user-audit: ${KAFKA_TOPIC_USER_AUDIT:user.audit.v1}
 

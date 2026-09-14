@@ -17,6 +17,12 @@ This Spring Boot application provides the API backbone for the Notes App, enabli
     - JWT Authentication: Securely verify user identity after login using JSON Web Tokens.
     - Registration, Login, Reset Password, Change Password: Manage user accounts with intuitive functionalities.
 - Database Integration: Connect to a database (e.g., MySQL, PostgreSQL) to persist your notes safely.
+- Redis Caching: Low-latency caching for single and list note queries with resilient error fallback.
+- OpenSearch Full-Text Search: High-performance search with n-gram autocomplete and user-tenant shard routing.
+- Apache Kafka Event Streaming:
+    - Micro-batched OpenSearch indexing using `_bulk` API.
+    - Decoupled, reliable email dispatching with exponential backoff and Dead Letter Topics (DLT).
+    - User security and activity audit logging.
 
 
 ## Getting Started :
@@ -59,7 +65,7 @@ mvn install
 
 - edit the host, username, password properties of the mail config properties in the application.yml file with the host property configured to the smtp server address of the mail provider like `smtp-mail.outlook.com` for outlook and `smtp.gmail.com` for gmail and username property with the username and password property with the app password of the email.This email will be used to send the confirmation email for verifying the user account
 
-5. **Start Infrastructure Services (Redis & OpenSearch) :**
+5. **Start Infrastructure Services (Redis, OpenSearch & Kafka) :**
 
     **Start Redis (with secure ACL configured) :**
     ```bash
@@ -70,7 +76,7 @@ mvn install
     docker-compose -f docker-compose-redis.yml down
     ```
 
-    **Start OpenSearch :**
+    **Start OpenSearch (Search Engine Cluster) :**
     ```bash
     docker-compose up -d
     ```
@@ -78,6 +84,22 @@ mvn install
     ```bash
     docker-compose down
     ```
+
+    **Start Apache Kafka & Kafka UI (KRaft Event Streaming) :**
+    ```bash
+    docker-compose -f docker-compose-kafka.yml up -d
+    ```
+    - Kafka broker runs on port `9094` (external) / `9092` (internal).
+    - **Kafka UI** web dashboard is accessible at: **http://localhost:8085** to inspect topics, partitions, consumer group lag, and Dead Letter Topics (DLT).
+    
+    To stop Kafka & Kafka UI:
+    ```bash
+    docker-compose -f docker-compose-kafka.yml down
+    ```
+
+    > For in-depth technical guides, see:
+    > - [Kafka Architecture Guide (KAFKA_README.md)](./KAFKA_README.md)
+    > - [OpenSearch Architecture Guide (OPENSEARCH_README.md)](./OPENSEARCH_README.md)
 
 6. **Start the server :**
 

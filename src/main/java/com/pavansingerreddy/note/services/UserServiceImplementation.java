@@ -30,6 +30,8 @@ import com.pavansingerreddy.note.exception.InvalidUserDetailsException;
 import com.pavansingerreddy.note.exception.PasswordDoesNotMatchException;
 import com.pavansingerreddy.note.exception.UserAlreadyExistsException;
 import com.pavansingerreddy.note.exception.UserNotFoundException;
+import com.pavansingerreddy.note.kafka.dto.UserAuditEvent;
+import com.pavansingerreddy.note.kafka.producer.UserAuditProducer;
 import com.pavansingerreddy.note.model.ChangePasswordModel;
 import com.pavansingerreddy.note.model.NormalUserModel;
 import com.pavansingerreddy.note.model.ResetPasswordModel;
@@ -87,6 +89,9 @@ public class UserServiceImplementation implements UserService {
     // PasswordEncoder will be injected here by the spring IOC container
     @Autowired
     PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private UserAuditProducer userAuditProducer;
 
     @Override
     // This method is used to create user when the user get's registered or signs up
@@ -345,6 +350,17 @@ public class UserServiceImplementation implements UserService {
         user.setVerificationToken(null);
         // removing the verification token from the database
         verificationTokenRepository.delete(verificationToken);
+
+        // Audit log via Kafka
+        UserAuditEvent auditEvent = UserAuditEvent.builder()
+                .userId(user.getUserId())
+                .email(user.getEmail())
+                .action(UserAuditEvent.AuditAction.USER_VERIFIED)
+                .timestamp(new Date())
+                .details("User email address verified successfully")
+                .build();
+        userAuditProducer.publishAuditEvent(auditEvent);
+
         // returning true as the token is valid and the user is enabled
         return true;
 
@@ -454,6 +470,17 @@ public class UserServiceImplementation implements UserService {
             // saving our new user details to the database and returning "password reset
             // successful" string as a response
             userRepository.save(user);
+
+            // Audit log via Kafka
+            UserAuditEvent auditEvent = UserAuditEvent.builder()
+                    .userId(user.getUserId())
+                    .email(user.getEmail())
+                    .action(UserAuditEvent.AuditAction.PASSWORD_RESET_COMPLETED)
+                    .timestamp(new Date())
+                    .details("Password reset completed successfully")
+                    .build();
+            userAuditProducer.publishAuditEvent(auditEvent);
+
             return "password reset successful";
         }
         // if the newpassword and retypednewpassword does not match then we throw an
@@ -485,6 +512,16 @@ public class UserServiceImplementation implements UserService {
         // changing his password
         user.setPassword(passwordEncoder.encode(changePasswordModel.getNewpassword()));
         userRepository.save(user);
+
+        // Audit log via Kafka
+        UserAuditEvent auditEvent = UserAuditEvent.builder()
+                .userId(user.getUserId())
+                .email(user.getEmail())
+                .action(UserAuditEvent.AuditAction.PASSWORD_CHANGED)
+                .timestamp(new Date())
+                .details("Password changed successfully by authenticated user")
+                .build();
+        userAuditProducer.publishAuditEvent(auditEvent);
 
         // if the password saved successfully then we send a string named "Password
         // changed successfully"

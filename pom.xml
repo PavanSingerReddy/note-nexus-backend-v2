@@ -74,6 +74,12 @@
 			<artifactId>spring-boot-starter-data-redis</artifactId>
 		</dependency>
 
+		<!-- Apache Kafka Integration -->
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
+		</dependency>
+
 		<!-- OpenSearch Java Client -->
 		<dependency>
 			<groupId>org.opensearch.client</groupId>
